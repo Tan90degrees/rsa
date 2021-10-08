@@ -1,13 +1,28 @@
-package client
+package main
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"net"
-	"src/key"
-	"src/myerror"
+	"os"
 )
 
 const PUBKEY string = "publicKey.pem"
+
+func Encrypt(path string, msg []byte) []byte {
+	fp, _ := os.Open(path)
+	defer fp.Close()
+	fs, _ := fp.Stat()
+	buf := make([]byte, fs.Size())
+	fp.Read(buf)
+	block, _ := pem.Decode(buf)
+	pub, _ := x509.ParsePKCS1PublicKey(block.Bytes)
+	encryptMsg, _ := rsa.EncryptPKCS1v15(rand.Reader, pub, msg)
+	return encryptMsg
+}
 
 func Client() {
 	var addr string
@@ -17,8 +32,8 @@ func Client() {
 	fmt.Println("Input message:")
 	fmt.Scanln(&msg)
 	authSocket, err := net.Dial("tcp", addr)
-	myerror.CheckError(err)
+	CheckError(err)
 	defer authSocket.Close()
-	encryptMsg := key.Encrypt(PUBKEY, []byte(msg))
+	encryptMsg := Encrypt(PUBKEY, []byte(msg))
 	authSocket.Write(encryptMsg)
 }
