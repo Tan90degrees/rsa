@@ -1,5 +1,6 @@
 package main
 
+import "C"
 import (
 	"crypto/rand"
 	"crypto/rsa"
@@ -12,7 +13,7 @@ import (
 
 const PRIKEY string = "privateKey.pem"
 
-func Decrypt(path string, msg []byte) []byte {
+func decrypt(path string, msg []byte) []byte {
 	fp, _ := os.Open(path)
 	defer fp.Close()
 	fs, _ := fp.Stat()
@@ -24,17 +25,22 @@ func Decrypt(path string, msg []byte) []byte {
 	return decryptMsg
 }
 
+//export Server
 func Server() {
-	s := make([]byte, 256)
-	authSocket, err := net.Listen("tcp", ":4321")
-	CheckError(err)
-	defer authSocket.Close()
-	authConn, err := authSocket.Accept()
-	CheckError(err)
-	defer authConn.Close()
-	fmt.Print("Accept from:", authConn.RemoteAddr())
-	_, err = authConn.Read(s)
-	CheckError(err)
-	msg := Decrypt(PRIKEY, s)
-	fmt.Println(string(msg))
+	if isThere(PRIKEY) {
+		s := make([]byte, 256)
+		authSocket, err := net.Listen("tcp", ":4321")
+		checkError(err)
+		defer authSocket.Close()
+		authConn, err := authSocket.Accept()
+		checkError(err)
+		defer authConn.Close()
+		fmt.Print("Accept from:", authConn.RemoteAddr())
+		_, err = authConn.Read(s)
+		checkError(err)
+		msg := decrypt(PRIKEY, s)
+		fmt.Println(string(msg))
+	} else {
+		os.Exit(0)
+	}
 }

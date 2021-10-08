@@ -1,5 +1,7 @@
 package main
 
+import "C"
+
 import (
 	"crypto/rand"
 	"crypto/rsa"
@@ -12,7 +14,7 @@ import (
 
 const PUBKEY string = "publicKey.pem"
 
-func Encrypt(path string, msg []byte) []byte {
+func encrypt(path string, msg []byte) []byte {
 	fp, _ := os.Open(path)
 	defer fp.Close()
 	fs, _ := fp.Stat()
@@ -24,16 +26,21 @@ func Encrypt(path string, msg []byte) []byte {
 	return encryptMsg
 }
 
+//export Client
 func Client() {
-	var addr string
-	var msg string
-	fmt.Println("Input server address:")
-	fmt.Scanln(&addr)
-	fmt.Println("Input message:")
-	fmt.Scanln(&msg)
-	authSocket, err := net.Dial("tcp", addr)
-	CheckError(err)
-	defer authSocket.Close()
-	encryptMsg := Encrypt(PUBKEY, []byte(msg))
-	authSocket.Write(encryptMsg)
+	if isThere(PUBKEY) {
+		var addr string
+		var msg string
+		fmt.Println("Input server address:")
+		fmt.Scanln(&addr)
+		fmt.Println("Input message:")
+		fmt.Scanln(&msg)
+		authSocket, err := net.Dial("tcp", addr)
+		checkError(err)
+		defer authSocket.Close()
+		encryptMsg := encrypt(PUBKEY, []byte(msg))
+		authSocket.Write(encryptMsg)
+	} else {
+		os.Exit(0)
+	}
 }

@@ -1,5 +1,7 @@
 package main
 
+import "C"
+
 import (
 	"crypto/rand"
 	"crypto/rsa"
@@ -12,17 +14,18 @@ import (
 const PRIKEY string = "privateKey.pem"
 const PUBKEY string = "publicKey.pem"
 
+//export GenKey
 func GenKey(strength int) {
-	if IsThere(PRIKEY) || IsThere(PUBKEY) {
+	if isThere(PRIKEY) || isThere(PUBKEY) {
 		fmt.Println("There have been keys.")
 		return
 	}
 	// Private key
 	priKey, err := rsa.GenerateKey(rand.Reader, strength)
-	CheckError(err)
+	checkError(err)
 	x509priKey := x509.MarshalPKCS1PrivateKey(priKey)
 	priFp, err := os.Create(PRIKEY)
-	CheckError(err)
+	checkError(err)
 	defer priFp.Close()
 	priPemBlock := pem.Block{
 		Type:  "PRIVATE KEY",
@@ -32,7 +35,7 @@ func GenKey(strength int) {
 
 	// Public key
 	pubFp, err := os.Create(PUBKEY)
-	CheckError(err)
+	checkError(err)
 	defer pubFp.Close()
 	pubKey := priKey.PublicKey
 	x509pubKey := x509.MarshalPKCS1PublicKey(&pubKey)
