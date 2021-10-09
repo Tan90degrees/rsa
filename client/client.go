@@ -7,7 +7,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"net"
 	"os"
 )
@@ -27,14 +26,8 @@ func encrypt(path string, msg []byte) []byte {
 }
 
 //export Client
-func Client() {
+func Client(addr string, msg string) {
 	if isThere(PUBKEY) {
-		var addr string
-		var msg string
-		fmt.Println("Input server address:")
-		fmt.Scanln(&addr)
-		fmt.Println("Input message:")
-		fmt.Scanln(&msg)
 		authSocket, err := net.Dial("tcp", addr)
 		checkError(err)
 		defer authSocket.Close()
